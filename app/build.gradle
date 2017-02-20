@@ -52,6 +52,7 @@ android {
     }
 
     dependencies {
+        compile fileTree(dir: 'libs', include: ['*.so'])
         testCompile 'junit:junit:4.12'
     }
 }
