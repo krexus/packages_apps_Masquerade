@@ -116,6 +116,7 @@ public class JobService extends Service {
             MASQUERADE_PACKAGE,
             SUBSTRATUM_PACKAGE,
     };
+    private static final String INTENT_CALLER_AUTHORIZED = "masquerade.substratum.CALLER_AUTHORIZED";
     private static IOverlayManager mOMS;
     private static IPackageManager mPM;
     private final List<Runnable> mJobQueue = new ArrayList<>(0);
@@ -776,6 +777,7 @@ public class JobService extends Service {
                         log("\'" + callingPackage
                                 + "\' is an authorized calling package, validating calling package " +
                                 "permissions...");
+                        informCaller(true);
                         return true;
                     }
                }
@@ -785,6 +787,7 @@ public class JobService extends Service {
         if (shouldCheckBuildType() && isDebugBuild()) {
             log("the ROM is a userdebug or eng build configured to allow all packages," +
                     "validating calling package permissions...");
+            informCaller(true);
             return true;
         }
 
@@ -792,11 +795,19 @@ public class JobService extends Service {
             log("\'" + callingPackage + "\' is not an authorized calling package, but the user " +
                     "has explicitly allowed all calling packages, " +
                     "validating calling package permissions...");
+            informCaller(true);
             return true;
         }
 
         log("\'" + callingPackage + "\' is not an authorized calling package.");
+        informCaller(false);
         return false;
+    }
+
+    private void informCaller(boolean result) {
+        Intent intent = new Intent(INTENT_CALLER_AUTHORIZED);
+        intent.putExtra("isCallerAuthorized", result);
+        sendBroadcastAsUser(intent, UserHandle.ALL);
     }
 
     private class MainHandler extends Handler {
